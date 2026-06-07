@@ -1,0 +1,17 @@
+<?xml version='1.0'?>
+<!-- time='0.7' -->
+<VTKFile type='vtkMultiBlockDataSet' version='1.0' byte_order='LittleEndian' header_type='UInt64'>
+  <vtkMultiBlockDataSet>
+    <DataSet name='internal' file='poiseuille_700/internal.vtu' />
+    <Block name='boundary'>
+      <DataSet name='inlet' file='poiseuille_700/boundary/inlet.vtp' />
+      <DataSet name='outlet' file='poiseuille_700/boundary/outlet.vtp' />
+      <DataSet name='walls' file='poiseuille_700/boundary/walls.vtp' />
+    </Block>
+  </vtkMultiBlockDataSet>
+  <FieldData>
+    <DataArray type='Float32' Name='TimeValue' NumberOfTuples='1' format='ascii'>
+0.7
+    </DataArray>
+  </FieldData>
+</VTKFile>

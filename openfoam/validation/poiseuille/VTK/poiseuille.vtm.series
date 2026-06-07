@@ -1,0 +1,16 @@
+{
+  "file-series-version" : "1.0",
+  "files" : [
+    { "name" : "poiseuille_0.vtm", "time" : 0 },
+    { "name" : "poiseuille_100.vtm", "time" : 0.1 },
+    { "name" : "poiseuille_200.vtm", "time" : 0.2 },
+    { "name" : "poiseuille_300.vtm", "time" : 0.3 },
+    { "name" : "poiseuille_400.vtm", "time" : 0.4 },
+    { "name" : "poiseuille_500.vtm", "time" : 0.5 },
+    { "name" : "poiseuille_600.vtm", "time" : 0.6 },
+    { "name" : "poiseuille_700.vtm", "time" : 0.7 },
+    { "name" : "poiseuille_800.vtm", "time" : 0.8 },
+    { "name" : "poiseuille_900.vtm", "time" : 0.9 },
+    { "name" : "poiseuille_1000.vtm", "time" : 1 }
+  ]
+}

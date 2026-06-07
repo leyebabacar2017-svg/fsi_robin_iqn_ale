@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+
+# FEniCSx outputs
+*.xdmf
+*.h5
+
+# ParaView
+*.vtu
+*.pvtu
+*.pvd
+
+# Results
+results/
+
+# VSCode
+.vscode/
+
+# Conda
+.env
