@@ -20,6 +20,19 @@ from common.traction import (
     create_vertical_traction
 )
 
+from common.mesh_utils import (
+    load_turek_mesh,
+    extract_solid_mesh
+)
+
+from common.boundary_transfer import (
+    transfer_facet_tags_to_submesh
+)
+
+from common.boundary_conditions import (
+    create_clamp_bc
+)
+
 import ufl
 
 # =====================================================
@@ -87,13 +100,23 @@ from common.boundary_conditions import (
     create_clamp_bc
 )
 
-bc, left_facets = create_clamp_bc(
-    solid_mesh,
-    V
-)
+solid_facet_tags = \
+    transfer_facet_tags_to_submesh(
+        domain,
+        facet_tags,
+        solid_mesh,
+        cell_map
+    )
 
+bc, clamp_facets = \
+    create_clamp_bc(
+        solid_mesh,
+        solid_facet_tags,
+        V
+    )
+    
 print()
-print("Clamp facets =", len(left_facets))
+print("Clamp facets =", len(clamp_facets))
 
 # =====================================================
 # Traction

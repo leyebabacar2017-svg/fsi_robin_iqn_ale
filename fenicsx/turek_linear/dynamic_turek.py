@@ -84,9 +84,18 @@ mu, lmbda = lame_parameters(
 # BC
 # =====================================================
 
-bc, left_facets = \
+solid_facet_tags = \
+    transfer_facet_tags_to_submesh(
+        domain,
+        facet_tags,
+        solid_mesh,
+        cell_map
+    )
+
+bc, clamp_facets = \
     create_clamp_bc(
         solid_mesh,
+        solid_facet_tags,
         V
     )
     
@@ -167,6 +176,10 @@ uh = fem.Function(V)
 vh = fem.Function(V)
 ah = fem.Function(V)
 
+u_old = fem.Function(V)
+v_old = fem.Function(V)
+a_old = fem.Function(V)
+
 # impulsion initiale
 vh.x.array[:] = 0.0
 ah.x.array[:] = 0.0
@@ -179,6 +192,8 @@ Aa = ah.x.petsc_vec
 
 rhs = U.duplicate()
 
+tmp = U.duplicate()
+
 for i in range(len(coords)):
 
     x = coords[i]
@@ -187,8 +202,9 @@ for i in range(len(coords)):
 
         vh.x.array[2*i+1] = -0.1
   
-print(len(coords))
-print(len(vh.x.array))
+u_old.x.array[:] = uh.x.array[:]
+v_old.x.array[:] = vh.x.array[:]
+a_old.x.array[:] = ah.x.array[:]
   
 # =====================================================
 # Export
@@ -215,22 +231,97 @@ for n in range(nsteps):
             f"step {n}/{nsteps}"
         )
 
+    # --------------------------------
+    # RHS Newmark
+    # --------------------------------
+
+    tmp.array[:] = (
+        1.0/(beta*dt*dt)
+        * u_old.x.array
+        +
+        1.0/(beta*dt)
+        * v_old.x.array
+        +
+        (
+            1.0/(2.0*beta)-1.0
+        )
+        * a_old.x.array
+    )
+
+    rhs.zeroEntries()
+
+    M.mult(
+        tmp,
+        rhs
+    )
+
+    # --------------------------------
+    # Solve
+    # --------------------------------
+
+    solver.solve(
+        rhs,
+        U
+    )
+
+    uh.x.scatter_forward()
+
+    # --------------------------------
+    # Acceleration
+    # --------------------------------
+
+    ah.x.array[:] = (
+        1.0/(beta*dt*dt)
+        * (
+            uh.x.array
+            -
+            u_old.x.array
+        )
+        -
+        1.0/(beta*dt)
+        * v_old.x.array
+        -
+        (
+            1.0/(2.0*beta)-1.0
+        )
+        * a_old.x.array
+    )
+
+    # --------------------------------
+    # Velocity
+    # --------------------------------
+
+    vh.x.array[:] = (
+        v_old.x.array
+        +
+        dt
+        * (
+            (1.0-gamma)
+            * a_old.x.array
+            +
+            gamma
+            * ah.x.array
+        )
+    )
+
+    # --------------------------------
+    # Update
+    # --------------------------------
+
+    u_old.x.array[:] = uh.x.array[:]
+    v_old.x.array[:] = vh.x.array[:]
+    a_old.x.array[:] = ah.x.array[:]
+
+    # --------------------------------
+    # Export
+    # --------------------------------
+
     xdmf.write_function(
         uh,
         t
     )
 
 xdmf.close()
-
-print("M nnz =", M.getInfo()["nz_used"])
-print("K nnz =", K.getInfo()["nz_used"])
-
-print()
-print("||M||F =", M.norm())
-print("||K||F =", K.norm())
-
-print("M symmetric =", M.isSymmetric(tol=1e-8))
-print("K symmetric =", K.isSymmetric(tol=1e-8))
 
 print()
 print("Finished")
