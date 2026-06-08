@@ -6,28 +6,26 @@ from dolfinx import fem, mesh
 
 import ufl
 
+from common.tags import Tags
 
-def create_right_boundary(
+def create_interface_boundary(
     solid_mesh,
-    x_right=0.60
+    solid_facet_tags
 ):
     """
-    Détection du bord libre.
+    Interface fluide-structure.
+    Utilise les tags Gmsh.
     """
 
     fdim = solid_mesh.topology.dim - 1
 
-    right_facets = mesh.locate_entities_boundary(
-        solid_mesh,
-        fdim,
-        lambda x: np.isclose(
-            x[0],
-            x_right
+    interface_facets = \
+        solid_facet_tags.find(
+            Tags.INTERFACE
         )
-    )
 
     facet_marker = np.full(
-        len(right_facets),
+        len(interface_facets),
         1,
         dtype=np.int32
     )
@@ -35,7 +33,7 @@ def create_right_boundary(
     facet_tags = mesh.meshtags(
         solid_mesh,
         fdim,
-        right_facets,
+        interface_facets,
         facet_marker
     )
 
@@ -45,7 +43,7 @@ def create_right_boundary(
         subdomain_data=facet_tags
     )
 
-    return right_facets, ds
+    return interface_facets, ds
 
 
 def create_vertical_traction(

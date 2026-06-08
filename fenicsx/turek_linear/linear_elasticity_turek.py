@@ -5,9 +5,10 @@ import sys
 
 sys.path.append("..")
 
-from dolfinx import mesh
 from dolfinx import fem, io
 from dolfinx.fem.petsc import LinearProblem
+
+from common.tags import Tags
 
 from common.materials import (
     lame_parameters
@@ -32,12 +33,16 @@ from common.boundary_conditions import (
 )
 
 from common.traction import (
-    create_right_boundary,
+    create_interface_boundary,
     create_vertical_traction
 )
 
 from common.io_utils import (
     print_mesh_info
+)
+
+from common.parameters import (
+    TurekParameters
 )
 
 # =====================================================
@@ -47,7 +52,7 @@ from common.io_utils import (
 domain, cell_tags, facet_tags = \
     load_turek_mesh()
 
-solid_mesh, cell_map, vertex_map, geom_map = \
+solid_mesh, cell_map, _, _ = \
     extract_solid_mesh(
         domain,
         cell_tags
@@ -80,8 +85,9 @@ v = ufl.TestFunction(V)
 # Paramètres matériau
 # =====================================================
 
-E = 1.4e6
-nu = 0.4
+E = TurekParameters.E
+
+nu = TurekParameters.nu
 
 mu, lmbda = lame_parameters(
     E,
@@ -100,6 +106,19 @@ solid_facet_tags = \
         cell_map
     )
 
+print()
+print("Tags présents sur le sous-maillage solide :")
+print(np.unique(solid_facet_tags.values))
+
+print(
+    "Interface facets =",
+    len(
+        solid_facet_tags.find(
+            Tags.INTERFACE
+        )
+    )
+)
+
 bc, clamp_facets = \
     create_clamp_bc(
         solid_mesh,
@@ -114,7 +133,7 @@ print("Clamp facets =", len(clamp_facets))
 # Traction
 # =====================================================
 
-TRACTION = 1000.0
+TRACTION = TurekParameters.traction
 
 traction = create_vertical_traction(
     solid_mesh,
@@ -133,24 +152,26 @@ a = (
 )
 
 # =====================================================
-# Traction sur x = 0.60
+# Traction sur l'interface fluide-structure
 # =====================================================
 
-fdim = solid_mesh.topology.dim - 1
-
-right_facets, ds_test = \
-    create_right_boundary(
-        solid_mesh
+interface_facets, ds_interface = \
+    create_interface_boundary(
+        solid_mesh,
+        solid_facet_tags
     )
-   
-print("Right facets =", len(right_facets))
+
+print(
+    "Interface facets =",
+    len(interface_facets)
+)
 
 L = (
     ufl.dot(
         traction,
         v
     )
-    * ds_test(1)
+    * ds_interface(1)
 )
 
 # =====================================================

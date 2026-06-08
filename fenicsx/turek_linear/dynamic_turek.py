@@ -1,32 +1,40 @@
-from mpi4py import MPI
-from petsc4py import PETSc
-
-import numpy as np
-import ufl
-import sys
-
-sys.path.append("..")
-
-from dolfinx import fem, io
-from dolfinx.fem.petsc import assemble_matrix
-
 from common.mesh_utils import (
     load_turek_mesh,
     extract_solid_mesh
 )
-from common.materials import (
-    lame_parameters
+
+from common.boundary_transfer import (
+    transfer_facet_tags_to_submesh
 )
-from common.elasticity import (
-    eps,
-    sigma
-)
+
 from common.boundary_conditions import (
     create_clamp_bc
 )
 
-from common.boundary_transfer import (
-    transfer_facet_tags_to_submesh
+from common.materials import (
+    lame_parameters
+)
+
+from common.elasticity import (
+    eps,
+    sigma
+)
+
+from common.time_integrators import (
+    build_newmark_matrix,
+    create_linear_solver
+)
+
+from common.io_utils import (
+    print_mesh_info
+)
+
+from common.parameters import (
+    TurekParameters
+)
+
+from common.parameters import (
+    TurekParameters
 )
 
 # =====================================================
@@ -75,8 +83,9 @@ v = ufl.TestFunction(V)
 
 rho = 1000.0
 
-E = 1.4e6
-nu_m = 0.4
+E = TurekParameters.E
+
+nu = TurekParameters.nu
 
 mu, lmbda = lame_parameters(
     E,
@@ -137,11 +146,13 @@ K.assemble()
 # Newmark
 # =====================================================
 
-dt = 1e-4
-T = 0.05
+TRACTION = TurekParameters.traction
 
-beta = 0.25
-gamma = 0.5
+dt = TurekParameters.dt
+
+beta = TurekParameters.beta
+
+gamma = TurekParameters.gamma
 
 Keff = build_newmark_matrix(
     M,
@@ -150,15 +161,10 @@ Keff = build_newmark_matrix(
     dt
 )
 
-solver = PETSc.KSP().create(
+solver = create_linear_solver(
+    Keff,
     solid_mesh.comm
 )
-
-solver.setOperators(Keff)
-
-solver.setType("preonly")
-
-solver.getPC().setType("lu")
 
 nsteps = int(T/dt)
 
