@@ -10,7 +10,6 @@ sys.path.append("..")
 from dolfinx import fem, io
 from dolfinx.fem.petsc import assemble_matrix
 
-from common.tags import Tags
 from common.mesh_utils import (
     load_turek_mesh,
     extract_solid_mesh
@@ -26,6 +25,10 @@ from common.boundary_conditions import (
     create_clamp_bc
 )
 
+from common.boundary_transfer import (
+    transfer_facet_tags_to_submesh
+)
+
 # =====================================================
 # Lecture du maillage
 # =====================================================
@@ -33,7 +36,7 @@ from common.boundary_conditions import (
 domain, cell_tags, facet_tags = \
     load_turek_mesh()
 
-solid_mesh, _, _, _ = \
+solid_mesh, cell_map, _, _ = \
     extract_solid_mesh(
         domain,
         cell_tags
@@ -130,17 +133,6 @@ K = assemble_matrix(
 
 K.assemble()
 
-print()
-print("Matrices assembled")
-
-print()
-print("Mass matrix size:")
-print(M.getSize())
-
-print()
-print("Stiffness matrix size:")
-print(K.getSize())
-
 # =====================================================
 # Newmark
 # =====================================================
@@ -151,14 +143,12 @@ T = 0.05
 beta = 0.25
 gamma = 0.5
 
-Keff = K.copy()
-
-Keff.axpy(
-    1.0/(beta*dt*dt),
-    M
+Keff = build_newmark_matrix(
+    M,
+    K,
+    beta,
+    dt
 )
-
-Keff.assemble()
 
 solver = PETSc.KSP().create(
     solid_mesh.comm

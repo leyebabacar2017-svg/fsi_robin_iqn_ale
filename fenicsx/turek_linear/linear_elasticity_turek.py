@@ -1,23 +1,21 @@
 from mpi4py import MPI
-from petsc4py import PETSc
 import numpy as np
+import ufl
 import sys
 
 sys.path.append("..")
 
-from common.tags import Tags
-from common.materials import lame_parameters
-from common.elasticity import eps, sigma
-
-from dolfinx.io.gmsh import read_from_msh
-from dolfinx import fem
 from dolfinx import mesh
-from dolfinx import io
+from dolfinx import fem, io
 from dolfinx.fem.petsc import LinearProblem
 
-from common.traction import (
-    create_right_boundary,
-    create_vertical_traction
+from common.materials import (
+    lame_parameters
+)
+
+from common.elasticity import (
+    eps,
+    sigma
 )
 
 from common.mesh_utils import (
@@ -33,16 +31,18 @@ from common.boundary_conditions import (
     create_clamp_bc
 )
 
-import ufl
+from common.traction import (
+    create_right_boundary,
+    create_vertical_traction
+)
+
+from common.io_utils import (
+    print_mesh_info
+)
 
 # =====================================================
 # Lecture du maillage
 # =====================================================
-
-from common.mesh_utils import (
-    load_turek_mesh,
-    extract_solid_mesh
-)
 
 domain, cell_tags, facet_tags = \
     load_turek_mesh()
@@ -53,15 +53,11 @@ solid_mesh, cell_map, vertex_map, geom_map = \
         cell_tags
     )
 
-print()
-print("====================================")
-print("Solid mesh")
-print("Cells :", solid_mesh.topology.index_map(
-    solid_mesh.topology.dim
-).size_local)
-print("Nodes :", solid_mesh.geometry.x.shape[0])
-print("====================================")
-print()
+print_mesh_info(
+    solid_mesh,
+    "Solid mesh"
+)
+
 # =====================================================
 # Mesures
 # =====================================================
@@ -95,10 +91,6 @@ mu, lmbda = lame_parameters(
 # =====================================================
 # Encastrement x = 0.25
 # =====================================================
-
-from common.boundary_conditions import (
-    create_clamp_bc
-)
 
 solid_facet_tags = \
     transfer_facet_tags_to_submesh(
@@ -150,27 +142,8 @@ right_facets, ds_test = \
     create_right_boundary(
         solid_mesh
     )
-    
+   
 print("Right facets =", len(right_facets))
-
-facet_marker = np.full(
-    len(right_facets),
-    1,
-    dtype=np.int32
-)
-
-facet_tags_test = mesh.meshtags(
-    solid_mesh,
-    fdim,
-    right_facets,
-    facet_marker
-)
-
-ds_test = ufl.Measure(
-    "ds",
-    domain=solid_mesh,
-    subdomain_data=facet_tags_test
-)
 
 L = (
     ufl.dot(
@@ -250,8 +223,6 @@ if MPI.COMM_WORLD.rank == 0:
     print("Maximum displacement =",umax)
     print("====================================")
     
-from dolfinx import io
-
 with io.XDMFFile(
     solid_mesh.comm,
     "results/linear_turek.xdmf",
