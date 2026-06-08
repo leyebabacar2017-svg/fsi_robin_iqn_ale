@@ -1,34 +1,35 @@
 import numpy as np
 
 from petsc4py import PETSc
+from dolfinx import fem
 
-from dolfinx import fem, mesh
+from common.tags import Tags
 
 
 def create_clamp_bc(
     solid_mesh,
-    V,
-    x_clamp=0.25
+    solid_facet_tags,
+    V
 ):
     """
-    Encastrement du bord gauche.
+    Encastrement basé sur les tags Gmsh.
     """
 
     fdim = solid_mesh.topology.dim - 1
 
-    left_facets = mesh.locate_entities_boundary(
-        solid_mesh,
-        fdim,
-        lambda x: np.isclose(
-            x[0],
-            x_clamp
-        )
+    clamp_facets = solid_facet_tags.find(
+        Tags.CLAMP
     )
-
+ 
+    solid_mesh.topology.create_connectivity(
+        fdim,
+        solid_mesh.topology.dim
+    )   
+    
     clamp_dofs = fem.locate_dofs_topological(
         V,
         fdim,
-        left_facets
+        clamp_facets
     )
 
     u_D = np.array(
@@ -42,4 +43,4 @@ def create_clamp_bc(
         V
     )
 
-    return bc, left_facets
+    return bc, clamp_facets
