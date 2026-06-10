@@ -1,28 +1,28 @@
-import numpy as np
+from dolfinx import mesh
+from dolfinx import fem
 
 from petsc4py import PETSc
 
-from dolfinx import fem, mesh
-
+import numpy as np
 import ufl
 
 from common.tags import Tags
+
 
 def create_interface_boundary(
     solid_mesh,
     solid_facet_tags
 ):
     """
-    Interface fluide-structure.
-    Utilise les tags Gmsh.
+    Interface solide-fluide basée
+    sur les tags Gmsh.
     """
 
     fdim = solid_mesh.topology.dim - 1
 
-    interface_facets = \
-        solid_facet_tags.find(
-            Tags.INTERFACE
-        )
+    interface_facets = solid_facet_tags.find(
+        Tags.INTERFACE
+    )
 
     facet_marker = np.full(
         len(interface_facets),
@@ -46,12 +46,31 @@ def create_interface_boundary(
     return interface_facets, ds
 
 
+def create_interface_force_form(
+    traction,
+    v,
+    ds_interface
+):
+    """
+    Forme linéaire associée
+    à une traction imposée.
+    """
+
+    return (
+        ufl.dot(
+            traction,
+            v
+        )
+        * ds_interface(1)
+    )
+
+
 def create_vertical_traction(
     solid_mesh,
     value
 ):
     """
-    Traction verticale.
+    Traction verticale uniforme.
     """
 
     return fem.Constant(

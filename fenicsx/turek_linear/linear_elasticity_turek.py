@@ -45,6 +45,40 @@ from common.parameters import (
     TurekParameters
 )
 
+from common.mesh_utils import (
+    load_turek_mesh,
+    extract_solid_mesh
+)
+
+from common.boundary_transfer import (
+    transfer_facet_tags_to_submesh
+)
+
+from common.boundary_conditions import (
+    create_clamp_bc
+)
+
+from common.materials import (
+    lame_parameters
+)
+
+from common.elasticity import (
+    eps,
+    sigma
+)
+
+from common.parameters import (
+    TurekParameters
+)
+
+from common.io_utils import (
+    print_mesh_info
+)
+
+from common.time_integrators import (
+    build_newmark_matrix,
+    create_linear_solver
+)
 # =====================================================
 # Lecture du maillage
 # =====================================================
@@ -60,8 +94,16 @@ solid_mesh, cell_map, _, _ = \
 
 print_mesh_info(
     solid_mesh,
-    "Solid mesh"
+    "Dynamic Turek"
 )
+
+solid_facet_tags = \
+    transfer_facet_tags_to_submesh(
+        domain,
+        facet_tags,
+        solid_mesh,
+        cell_map
+    )
 
 # =====================================================
 # Mesures
@@ -84,6 +126,8 @@ v = ufl.TestFunction(V)
 # =====================================================
 # Paramètres matériau
 # =====================================================
+
+rho = TurekParameters.rho
 
 E = TurekParameters.E
 

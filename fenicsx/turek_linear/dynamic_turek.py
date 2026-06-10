@@ -1,3 +1,12 @@
+from mpi4py import MPI
+from petsc4py import PETSc
+
+import numpy as np
+import ufl
+
+from dolfinx import fem, io
+from common.tags import Tags
+
 from common.mesh_utils import (
     load_turek_mesh,
     extract_solid_mesh
@@ -33,8 +42,22 @@ from common.parameters import (
     TurekParameters
 )
 
-from common.parameters import (
-    TurekParameters
+from common.probes import (
+    find_tip_dof
+)
+
+from dolfinx.fem.petsc import (
+    assemble_matrix
+)
+
+from common.loads import (
+    assemble_load_vector
+)
+
+from common.traction import (
+    create_interface_boundary,
+    create_vertical_traction,
+    create_interface_force_form
 )
 
 # =====================================================
@@ -50,20 +73,18 @@ solid_mesh, cell_map, _, _ = \
         cell_tags
     )
     
-print()
-print("====================================")
-print("Dynamic Turek")
-print(
-    "Cells =",
-    solid_mesh.topology.index_map(
-        solid_mesh.topology.dim
-    ).size_local
+solid_facet_tags = \
+    transfer_facet_tags_to_submesh(
+        domain,
+        facet_tags,
+        solid_mesh,
+        cell_map
+    )
+    
+print_mesh_info(
+    solid_mesh,
+    "Dynamic Turek"
 )
-print(
-    "Nodes =",
-    solid_mesh.geometry.x.shape[0]
-)
-print("====================================")
 
 # =====================================================
 # Espace EF
@@ -81,7 +102,7 @@ v = ufl.TestFunction(V)
 # Paramètres matériau
 # =====================================================
 
-rho = 1000.0
+rho = TurekParameters.rho
 
 E = TurekParameters.E
 
@@ -89,20 +110,12 @@ nu = TurekParameters.nu
 
 mu, lmbda = lame_parameters(
     E,
-    nu_m
+    nu
 )
 
 # =====================================================
 # BC
 # =====================================================
-
-solid_facet_tags = \
-    transfer_facet_tags_to_submesh(
-        domain,
-        facet_tags,
-        solid_mesh,
-        cell_map
-    )
 
 bc, clamp_facets = \
     create_clamp_bc(
@@ -110,7 +123,25 @@ bc, clamp_facets = \
         solid_facet_tags,
         V
     )
-    
+
+interface_facets, ds_interface = \
+    create_interface_boundary(
+        solid_mesh,
+        solid_facet_tags
+    )
+
+print()
+print(
+    "Interface facets =",
+    len(interface_facets)
+)
+
+print()
+print(
+    "Clamp facets =",
+    len(clamp_facets)
+)
+   
 # =====================================================
 # Matrices
 # =====================================================
@@ -142,11 +173,33 @@ K = assemble_matrix(
 
 K.assemble()
 
+print()
+print("Matrices assembled")
+
+print()
+print("Mass matrix size:")
+print(M.getSize())
+
+print()
+print("Stiffness matrix size:")
+print(K.getSize())
+
+print()
+print(
+    "||M||F =",
+    M.norm()
+)
+
+print(
+    "||K||F =",
+    K.norm()
+)
+
 # =====================================================
 # Newmark
 # =====================================================
 
-TRACTION = TurekParameters.traction
+T = TurekParameters.T
 
 dt = TurekParameters.dt
 
@@ -166,6 +219,31 @@ solver = create_linear_solver(
     solid_mesh.comm
 )
 
+traction = create_vertical_traction(
+    solid_mesh,
+    TurekParameters.traction
+)
+
+load_form = \
+    create_interface_force_form(
+        traction,
+        v,
+        ds_interface
+    )
+
+#F = assemble_load_vector(
+#    load_form,
+#    [bc]
+#)
+
+F = assemble_load_vector(
+    load_form
+)
+print()
+print(
+    "||F||2 =",
+    F.norm()
+)
 nsteps = int(T/dt)
 
 uh = fem.Function(V)
@@ -182,22 +260,35 @@ ah.x.array[:] = 0.0
 
 coords = V.tabulate_dof_coordinates()
 
+tip_dof = find_tip_dof(
+    V
+)
+
+print()
+print(
+    "Tip dof =",
+    tip_dof
+)
+
+print()
+
+print(
+    "Tip coordinates =",
+    coords[tip_dof]
+)
+
+time_history = []
+tip_history = []
+
 U = uh.x.petsc_vec
-Vv = vh.x.petsc_vec
-Aa = ah.x.petsc_vec
 
 rhs = U.duplicate()
 
 tmp = U.duplicate()
 
-for i in range(len(coords)):
+vh.x.array[:] = 0.0
+ah.x.array[:] = 0.0
 
-    x = coords[i]
-
-    if abs(x[0]-0.60) < 1e-3:
-
-        vh.x.array[2*i+1] = -0.1
-  
 u_old.x.array[:] = uh.x.array[:]
 v_old.x.array[:] = vh.x.array[:]
 a_old.x.array[:] = ah.x.array[:]
@@ -251,6 +342,11 @@ for n in range(nsteps):
         rhs
     )
 
+    rhs.axpy(
+       1.0,
+       F
+    )  
+    
     # --------------------------------
     # Solve
     # --------------------------------
@@ -311,13 +407,53 @@ for n in range(nsteps):
     # --------------------------------
     # Export
     # --------------------------------
+    time_history.append(t)
 
+    tip_history.append(
+        uh.x.array[
+            2*tip_dof + 1
+        ]
+    )
+    
     xdmf.write_function(
         uh,
         t
     )
 
 xdmf.close()
+
+print()
+print(
+    "Tip displacement =",
+    tip_history[-1]
+)
+
+print()
+print(
+    "Maximum tip displacement =",
+    np.max(
+        np.abs(
+            np.array(tip_history)
+        )
+    )
+)
+
+data = np.column_stack(
+    (
+        time_history,
+        tip_history
+    )
+)
+
+np.savetxt(
+    "results/tip_history.txt",
+    data,
+    header="time uy"
+)
+
+print()
+print("Min tip =", np.min(tip_history))
+print("Max tip =", np.max(tip_history))
 
 print()
 print("Finished")

@@ -6,12 +6,12 @@ class TurekParameters:
     nu = 0.4
 
     # Temps
-    dt = 1e-4
-    T = 0.05
+    dt = 5e-4
+    T = 1.0
 
     # Newmark
     beta = 0.25
     gamma = 0.5
 
     # Validation statique
-    traction = 1000.0
+    traction = 1.0
