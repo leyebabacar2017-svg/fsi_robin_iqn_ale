@@ -1,0 +1,75 @@
+FoamFile
+{
+    version 2.0;
+    format ascii;
+    class dictionary;
+    object snappyHexMeshDict;
+}
+
+castellatedMesh true;
+snap true;
+addLayers false;
+
+geometry
+{
+    cylinder.stl
+    {
+        type triSurfaceMesh;
+        name cylinder;
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 100000;
+    maxGlobalCells 2000000;
+
+    minRefinementCells 0;
+    nCellsBetweenLevels 3;
+
+    features
+    (
+        {
+            file "cylinder.eMesh";
+            level 2;
+        }
+    );
+
+    refinementSurfaces
+    {
+        cylinder
+        {
+            level (2 2);
+        }
+    }
+
+    resolveFeatureAngle 30;
+
+    refinementRegions
+    {
+    }
+
+
+    locationInMesh (0.50 0.20 0.005);
+
+    allowFreeStandingZoneFaces true;
+}
+
+snapControls
+{
+    nSmoothPatch 5;
+    tolerance 2.0;
+    nSolveIter 30;
+    nRelaxIter 5;
+}
+
+addLayersControls
+{
+}
+
+meshQualityControls
+{
+    maxNonOrtho 65;
+}
+
+mergeTolerance 1e-6;

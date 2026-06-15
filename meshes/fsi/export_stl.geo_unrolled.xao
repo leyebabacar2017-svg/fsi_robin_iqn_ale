@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XAO version="1.0" author="Gmsh">
+  <geometry name="export_stl">
+    <shape format="BREP"><![CDATA[
+CASCADE Topology V1, (c) Matra-Datavision
+Locations 0
+Curve2ds 0
+Curves 5
+3 0.20000000000000001 0.20000000000000001 0 0 0 1 1 0 -0 -0 1 0 0.050000000000000003 0.050000000000000003
+1 0.25 0.19 0 1 0 0 
+1 0.59999999999999998 0.19 0 0 1 0 
+1 0.59999999999999998 0.20999999999999999 0 -1 0 0 
+1 0.25 0.20999999999999999 0 0 -1 0 
+Polygon3D 0
+PolygonOnTriangulations 0
+Surfaces 2
+1 0.20000000000000001 0.20000000000000004 0 0 0 1 1 0 -0 -0 1 0 
+1 0.42499999999999999 0.19999999999999998 0 0 0 1 1 0 -0 -0 1 0 
+Triangulations 0
+
+TShapes 15
+Ve
+1e-07
+0.25 0.2 0
+0 0
+
+0101101
+*
+Ed
+ 1e-07 1 1 0
+1  1 0 0 6.28318530717959
+0
+
+0101000
++15 0 -15 0 *
+Wi
+
+0101100
++14 0 *
+Fa
+0  1e-07 1 0
+
+0101000
++13 0 *
+Ve
+1e-07
+0.25 0.19 0
+0 0
+
+0101101
+*
+Ve
+1e-07
+0.6 0.19 0
+0 0
+
+0101101
+*
+Ed
+ 1e-07 1 1 0
+1  2 0 0 0.35
+0
+
+0101000
++11 0 -10 0 *
+Ve
+1e-07
+0.6 0.21 0
+0 0
+
+0101101
+*
+Ed
+ 1e-07 1 1 0
+1  3 0 0 0.02
+0
+
+0101000
++10 0 -8 0 *
+Ve
+1e-07
+0.25 0.21 0
+0 0
+
+0101101
+*
+Ed
+ 1e-07 1 1 0
+1  4 0 0 0.35
+0
+
+0101000
++8 0 -6 0 *
+Ed
+ 1e-07 1 1 0
+1  5 0 0 0.02
+0
+
+0101000
++6 0 -11 0 *
+Wi
+
+0101100
++9 0 +7 0 +5 0 +4 0 *
+Fa
+0  1e-07 2 0
+
+0101000
++3 0 *
+Co
+
+1100000
++12 0 +2 0 *
+
++1 0 ]]></shape>
+    <topology>
+      <vertices count="5">
+        <vertex index="0" name="" reference="5"/>
+        <vertex index="1" name="" reference="9"/>
+        <vertex index="2" name="" reference="10"/>
+        <vertex index="3" name="" reference="12"/>
+        <vertex index="4" name="" reference="14"/>
+      </vertices>
+      <edges count="5">
+        <edge index="0" name="" reference="4"/>
+        <edge index="1" name="" reference="8"/>
+        <edge index="2" name="" reference="11"/>
+        <edge index="3" name="" reference="13"/>
+        <edge index="4" name="" reference="15"/>
+      </edges>
+      <faces count="2">
+        <face index="0" name="" reference="2"/>
+        <face index="1" name="" reference="6"/>
+      </faces>
+      <solids count="0">
+      </solids>
+    </topology>
+  </geometry>
+  <groups count="2">
+    <group name="Cylinder" dimension="face" tag="1" count="1">
+      <element index="0"/>
+    </group>
+    <group name="Beam" dimension="face" tag="2" count="1">
+      <element index="1"/>
+    </group>
+  </groups>
+  <fields count="0"/>
+</XAO>

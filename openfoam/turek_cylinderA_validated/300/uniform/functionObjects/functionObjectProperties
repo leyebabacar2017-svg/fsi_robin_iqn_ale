@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2512                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       dictionary;
+    location    "300/uniform/functionObjects";
+    object      functionObjectProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+cdf7e925f5746741c316f5fbcf39ad0dfca90775
+{
+    forcesCylinder
+    {
+        vector
+        {
+            pressureForce   ( 0.064763902 0.0033670627 2.5757993e-06 );
+            viscousForce    ( 0.029475004 0.0006950233 -2.3288215e-06 );
+            internalForce   ( 0 0 0 );
+            pressureMoment  ( 1.3047899e-07 8.571900100000001e-08 1.4207735e-06 );
+            viscousMoment   ( -1.8929302e-09 -1.0762025e-07 -2.1281128e-05 );
+            internalMoment  ( 0 0 0 );
+        }
+    }
+    forcesBeam
+    {
+        vector
+        {
+            pressureForce   ( -0.0030645356 0.004497234 -1.240265e-06 );
+            viscousForce    ( 0.030827379 0.00043350199 1.6397323e-06 );
+            internalForce   ( 0 0 0 );
+            pressureMoment  ( 2.5431038e-06 4.1388902e-07 0.00050177774 );
+            viscousMoment   ( -5.1168191e-07 -5.5509725e-07 7.3566687e-05 );
+            internalMoment  ( 0 0 0 );
+        }
+    }
+}
+
+
+// ************************************************************************* //

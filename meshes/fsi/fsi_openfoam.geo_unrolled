@@ -1,0 +1,15 @@
+Merge "meshes/fsi/fsi_openfoam.geo_unrolled.xao";
+Field[1] = Distance;
+Field[1].CurvesList = {};
+Field[1].PointsList = {};
+Field[1].Sampling = 20;
+Field[1].SurfacesList = {3};
+Field[2] = Threshold;
+Field[2].DistMax = 0.05;
+Field[2].DistMin = 0.01;
+Field[2].InField = 1;
+Field[2].Sigmoid = 0;
+Field[2].SizeMax = 0.01;
+Field[2].SizeMin = 0.0015;
+Field[2].StopAtDistMax = 0;
+Background Field = 2;
