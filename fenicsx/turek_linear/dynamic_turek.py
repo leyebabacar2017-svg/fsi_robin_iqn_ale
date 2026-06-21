@@ -60,6 +60,35 @@ from common.traction import (
     create_interface_force_form
 )
 
+import os
+
+def export_interface_displacement(
+    filename,
+    V,
+    uh,
+    interface_dofs
+):
+    """
+    Export des déplacements de l'interface.
+    """
+    
+    coords = V.tabulate_dof_coordinates()
+
+    data = np.column_stack(
+        [
+            coords[interface_dofs, 0],
+            coords[interface_dofs, 1],
+            uh.x.array[2 * interface_dofs],
+            uh.x.array[2 * interface_dofs + 1]
+        ]
+    )
+
+    np.savetxt(
+        filename,
+        data,
+        header="x y ux uy",
+        comments=""
+    )
 # =====================================================
 # Lecture du maillage
 # =====================================================
@@ -129,6 +158,28 @@ interface_facets, ds_interface = \
         solid_mesh,
         solid_facet_tags
     )
+
+fdim = solid_mesh.topology.dim - 1
+
+interface_dofs = fem.locate_dofs_topological(
+    V,
+    fdim,
+    interface_facets
+)
+
+print()
+print("Interface dofs =", len(interface_dofs))
+print(interface_dofs[:20])
+
+coords = V.tabulate_dof_coordinates()
+
+print()
+print("First interface node coordinates")
+print(
+    coords[
+        interface_dofs[:10]
+    ]
+)
 
 print()
 print(
@@ -305,6 +356,11 @@ xdmf = io.XDMFFile(
 
 xdmf.write_mesh(solid_mesh)
 
+os.makedirs(
+    "results/interface_history",
+    exist_ok=True
+)
+
 print()
 print("Starting time loop")
 
@@ -414,6 +470,15 @@ for n in range(nsteps):
             2*tip_dof + 1
         ]
     )
+    
+    if n % 10 == 0:
+
+        export_interface_displacement(
+              f"results/interface_history/interface_{n:05d}.csv",
+              V,
+              uh,
+              interface_dofs
+        )
     
     xdmf.write_function(
         uh,
