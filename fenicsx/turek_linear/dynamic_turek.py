@@ -60,6 +60,14 @@ from common.traction import (
     create_interface_force_form
 )
 
+from fluid_transfer.read_openfoam_force import (
+    read_openfoam_force
+)
+
+from common.openfoam_traction import (
+    create_openfoam_traction
+)
+
 import os
 
 def export_interface_displacement(
@@ -270,9 +278,14 @@ solver = create_linear_solver(
     solid_mesh.comm
 )
 
-traction = create_vertical_traction(
+traction_values = read_openfoam_force(
+    "openfoam/turek_cylinderA_validated/"
+    "postProcessing/forcesBeam/0/force.dat"
+)
+
+traction = create_openfoam_traction(
     solid_mesh,
-    TurekParameters.traction
+    traction_values
 )
 
 load_form = \
