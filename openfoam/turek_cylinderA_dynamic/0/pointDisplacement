@@ -1,0 +1,61 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointVectorField;
+    location    "0";
+    object      pointDisplacement;
+}
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+    outlet
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+    bottomWall
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+    topWall
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+    cylinder
+    {
+        type fixedValue;
+        value uniform (0 0 0);
+    }
+
+    beam
+    {
+        type fixedValue;
+        value uniform (0 -0.001 0);
+    }
+
+    front
+    {
+        type empty;
+    }
+
+    back
+    {
+        type empty;
+    }
+}

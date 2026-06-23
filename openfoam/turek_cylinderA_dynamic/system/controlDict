@@ -1,0 +1,73 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+
+application     simpleFoam;
+
+startFrom       startTime;
+startTime       0;
+
+stopAt          endTime;
+endTime         1000;
+
+deltaT          1;
+
+writeControl    timeStep;
+writeInterval   100;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions_disabled
+{
+    forcesCylinder
+    {
+        type forces;
+
+        libs ("libforces.so");
+
+        patches (cylinder);
+
+        rho rhoInf;
+        rhoInf 1000;
+
+        rhoInf 1000;
+
+        CofR (0.20 0.20 0.005);
+
+        writeControl timeStep;
+        writeInterval 1;
+    }
+
+    forcesBeam
+    {
+        type forces;
+
+        libs ("libforces.so");
+
+        patches (beam);
+
+        rho rhoInf;
+        rhoInf 1000;
+
+        rhoInf 1000;
+
+        CofR (0.25 0.20 0.005);
+
+        writeControl timeStep;
+        writeInterval 1;
+    }
+}
